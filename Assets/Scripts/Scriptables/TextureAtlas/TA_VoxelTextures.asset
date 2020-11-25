@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1593dd7a76cb6734db89c4bdd97b565d, type: 3}
+  m_Name: TA_VoxelTextures
+  m_EditorClassIdentifier: 
+  Name: Defualt Voxel Textures
+  HorizontalTextureNumber: 4
+  VerticalTextureNumber: 4
+  Atlas: {fileID: 2800000, guid: a4556af3da56fc64abb58f9c3ffd7c70, type: 3}
+  TextureNames:
+  - Stone
+  - Dirt
+  - Side Grass
+  - Coal Ore
+  - Wood Blanks
+  - Tree
+  - 'Chopped Tree '
+  - Top Grass
+  - Cobble Stone
+  - Bedrock
+  - Sand
+  - Brick Wall
+  - Furnace
+  - Side Furnace
+  - Burning Furnace
+  - Top Furnace

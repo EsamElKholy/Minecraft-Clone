@@ -48,36 +48,44 @@ public class World
     {
         chunks = new ChunkData[(int)worldSettings.worldSizeInChunks.x, (int)worldSettings.worldSizeInChunks.y, (int)worldSettings.worldSizeInChunks.z];
 
-        int startX = Mathf.Clamp((int)(worldSettings.worldSizeInChunks.x / 2) - (int)worldSettings.maxChunkViewDistance.x, 0, (int)(worldSettings.worldSizeInChunks.x / 2) - (int)worldSettings.maxChunkViewDistance.x);
+        int startX = (int)(worldSettings.worldSizeInChunks.x / 2) - (int)worldSettings.maxChunkViewDistance.x;
         int endX = (int)(worldSettings.worldSizeInChunks.x / 2) + (int)worldSettings.maxChunkViewDistance.x;
 
-        int startY = Mathf.Clamp((int)(worldSettings.worldSizeInChunks.y / 2) - (int)worldSettings.maxChunkViewDistance.y, 0, (int)(worldSettings.worldSizeInChunks.y / 2) - (int)worldSettings.maxChunkViewDistance.y);
+        int startY = (int)(worldSettings.worldSizeInChunks.y / 2) - (int)worldSettings.maxChunkViewDistance.y;
         int endY = (int)(worldSettings.worldSizeInChunks.y / 2) + (int)worldSettings.maxChunkViewDistance.y;
 
-        int startZ = Mathf.Clamp((int)(worldSettings.worldSizeInChunks.z / 2) - (int)worldSettings.maxChunkViewDistance.z, 0, (int)(worldSettings.worldSizeInChunks.z / 2) - (int)worldSettings.maxChunkViewDistance.z);
+        int startZ = (int)(worldSettings.worldSizeInChunks.z / 2) - (int)worldSettings.maxChunkViewDistance.z;
         int endZ = (int)(worldSettings.worldSizeInChunks.z / 2) + (int)worldSettings.maxChunkViewDistance.z;
 
-        for (int i = startX; i < endX; i++)
+        ChunkCoordinates start = ClampToChunkCoordinateToWorld(startX, startY, startZ);
+        ChunkCoordinates end = ClampToChunkCoordinateToWorld(endX, endY, endZ);
+
+        for (int i = start.x; i < end.x; i++)
         {
-            for (int j = startY; j < endY; j++)
+            for (int j = start.y; j < end.y; j++)
             {
-                for (int k = startZ; k < endZ; k++)
+                for (int k = start.z; k < end.z; k++)
                 {
                     GenerateChunkFromChunkCoordinates(i, j, k);
                 }
             }
         }
 
-        for (int i = startX; i < endX; i++)
+        for (int i = start.x; i < end.x; i++)
         {
-            for (int j = startY; j < endY; j++)
+            for (int j = start.y; j < end.y; j++)
             {
-                for (int k = startZ; k < endZ; k++)
+                for (int k = start.z; k < end.z; k++)
                 {
                     SetupChunkGameObjects(i, j, k);
                 }
             }
         }
+    }
+
+    public ChunkCoordinates ClampToChunkCoordinateToWorld(int x, int y, int z) 
+    {
+        return new ChunkCoordinates(Mathf.Clamp(x, 0, (int)worldSettings.worldSizeInChunks.x), Mathf.Clamp(y, 0, (int)worldSettings.worldSizeInChunks.y), Mathf.Clamp(z, 0, (int)worldSettings.worldSizeInChunks.z));
     }
 
     public ChunkCoordinates GetChunkCoordinatesFromWorldPosition(Vector3 position)
@@ -100,11 +108,23 @@ public class World
             return;
         }
 
+        int minActiveX = chunkCoordinates.x - (int)worldSettings.maxChunkViewDistance.x;
+        int maxActiveX = chunkCoordinates.x + (int)worldSettings.maxChunkViewDistance.x;
+
+        int minActiveY = chunkCoordinates.y - (int)worldSettings.maxChunkViewDistance.y;
+        int maxActiveY = chunkCoordinates.y + (int)worldSettings.maxChunkViewDistance.y;
+
+        int minActiveZ = chunkCoordinates.z - (int)worldSettings.maxChunkViewDistance.z;
+        int maxActiveZ = chunkCoordinates.z + (int)worldSettings.maxChunkViewDistance.z;
+
+        ChunkCoordinates minActive = ClampToChunkCoordinateToWorld(minActiveX, minActiveY, minActiveZ);
+        ChunkCoordinates maxActive = ClampToChunkCoordinateToWorld(maxActiveX, maxActiveY, maxActiveZ);
+
         for (int i = 0; i < activeChunks.Count; i++)
         {
-            if ((activeChunks[i].x < chunkCoordinates.x - (int)worldSettings.maxChunkViewDistance.x || activeChunks[i].x >= chunkCoordinates.x + (int)worldSettings.maxChunkViewDistance.x) ||
-                (activeChunks[i].y < chunkCoordinates.y - (int)worldSettings.maxChunkViewDistance.y || activeChunks[i].y >= chunkCoordinates.y + (int)worldSettings.maxChunkViewDistance.y) ||
-                (activeChunks[i].z < chunkCoordinates.z - (int)worldSettings.maxChunkViewDistance.z || activeChunks[i].z >= chunkCoordinates.z + (int)worldSettings.maxChunkViewDistance.z))
+            if ((activeChunks[i].x < minActive.x || activeChunks[i].x >= maxActive.x) ||
+                (activeChunks[i].y < minActive.y || activeChunks[i].y >= maxActive.y) ||
+                (activeChunks[i].z < minActive.z || activeChunks[i].z >= maxActive.z))
             {
                 chunks[activeChunks[i].x, activeChunks[i].y, activeChunks[i].z].IsActive = false;
                 activeChunks.RemoveAt(i);
@@ -112,11 +132,11 @@ public class World
             }
         }
 
-        for (int i = chunkCoordinates.x - (int)worldSettings.maxChunkViewDistance.x; i < chunkCoordinates.x + (int)worldSettings.maxChunkViewDistance.x; i++)
+        for (int i = minActive.x; i < maxActive.x; i++)
         {
-            for (int j = chunkCoordinates.y - (int)worldSettings.maxChunkViewDistance.y; j < chunkCoordinates.y + (int)worldSettings.maxChunkViewDistance.y; j++)
+            for (int j = minActive.y; j < maxActive.y; j++)
             {
-                for (int k = chunkCoordinates.z - (int)worldSettings.maxChunkViewDistance.z; k < chunkCoordinates.z + (int)worldSettings.maxChunkViewDistance.z; k++)
+                for (int k = minActive.z; k < maxActive.z; k++)
                 {
                     if (IsChunkInWorld(i, j, k))
                     {
@@ -134,11 +154,11 @@ public class World
             }
         }
 
-        for (int i = chunkCoordinates.x - (int)worldSettings.maxChunkViewDistance.x; i < chunkCoordinates.x + (int)worldSettings.maxChunkViewDistance.x; i++)
+        for (int i = minActive.x; i < maxActive.z; i++)
         {
-            for (int j = chunkCoordinates.y - (int)worldSettings.maxChunkViewDistance.y; j < chunkCoordinates.y + (int)worldSettings.maxChunkViewDistance.y; j++)
+            for (int j = minActive.y; j < maxActive.y; j++)
             {
-                for (int k = chunkCoordinates.z - (int)worldSettings.maxChunkViewDistance.z; k < chunkCoordinates.z + (int)worldSettings.maxChunkViewDistance.z; k++)
+                for (int k = minActive.z; k < maxActive.z; k++)
                 {
                     if (IsChunkInWorld(i, j, k))
                     {
@@ -205,38 +225,57 @@ public class World
         if (IsVoxelInWorld(positionInVoxels) == false)
         {
             return worldSettings.chunkSettings.voxelTypeCollection.GetVoxelType("Air");
-        }
+        }       
 
-        float randomHeightPercentage = Noise.Get2DPerlin(positionInVoxels, WorldSizeInVoxels, 0, 1);
-        int terrainHeight = Mathf.FloorToInt(randomHeightPercentage * WorldSizeInVoxels.y);
+        float randomHeightPercentage = Noise.Get2DPerlin(positionInVoxels, WorldSizeInVoxels, 0, worldSettings.biomeAttributes.noiseScale);
+        int terrainHeight = Mathf.FloorToInt(worldSettings.biomeAttributes.terrainHeight * randomHeightPercentage) + worldSettings.biomeAttributes.solidGroundHeight;
+
+        VoxelType voxelType;
 
         if (positionInVoxels.y < terrainHeight)
         {
-            int bedrockThreshold = (terrainHeight / 6);
-            int stoneThreshold = (terrainHeight * 3 / 6);
+            int bedrockThreshold = (terrainHeight / 16);
+            int stoneThreshold = (terrainHeight * 5 / 6);
             
             if (positionInVoxels.y <= bedrockThreshold)
             {
-                return worldSettings.chunkSettings.voxelTypeCollection.GetVoxelType("Bedrock");
+                voxelType = worldSettings.chunkSettings.voxelTypeCollection.GetVoxelType("Bedrock");
             }
             else if (positionInVoxels.y > bedrockThreshold && positionInVoxels.y <= stoneThreshold)
             {
-                return worldSettings.chunkSettings.voxelTypeCollection.GetVoxelType("Stone");
-
+                voxelType = worldSettings.chunkSettings.voxelTypeCollection.GetVoxelType("Stone");
             }
             else
             {
-                return worldSettings.chunkSettings.voxelTypeCollection.GetVoxelType("Dirt");
+                voxelType = worldSettings.chunkSettings.voxelTypeCollection.GetVoxelType("Dirt");
             }           
         }
         else if (positionInVoxels.y == terrainHeight)
         {
-            return worldSettings.chunkSettings.voxelTypeCollection.GetVoxelType("Grass");
+            voxelType = worldSettings.chunkSettings.voxelTypeCollection.GetVoxelType("Grass");
         }
         else
         {
-            return worldSettings.chunkSettings.voxelTypeCollection.GetVoxelType("Air");
+            voxelType = worldSettings.chunkSettings.voxelTypeCollection.GetVoxelType("Air");
         }
+
+        if (voxelType.TypeName == "Stone")
+        {
+            for (int i = 0; i < worldSettings.biomeAttributes.lodes.Count; i++)
+            {
+                Lode lode = worldSettings.biomeAttributes.lodes[i];
+
+                if (positionInVoxels.y > lode.minHeight && positionInVoxels.y < lode.maxHeight)
+                {
+                    if (Noise.Get3DPerlin(positionInVoxels, lode.noiseOffset, lode.noiseScale, lode.noiseThreshold))
+                    {
+                        voxelType = lode.voxelType;
+                    }
+                }
+            }
+        }
+
+        return voxelType;
     }
 
     private void GenerateChunkFromChunkCoordinates(int x, int y, int z)

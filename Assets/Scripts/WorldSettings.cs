@@ -9,4 +9,5 @@ public class WorldSettings : ScriptableObject
     public Vector3 worldSizeInChunks;
     public Vector3 maxChunkViewDistance;
     public int seed;
+    public BiomeAttributes biomeAttributes;
 }

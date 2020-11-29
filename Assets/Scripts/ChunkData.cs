@@ -150,68 +150,16 @@ public class ChunkData
         }
 
         var chunkVoxelInWorldCoordinates = GetChunkVoxelInWorldCoordinates(new Vector3(x, y, z), chunkCoordinates);
-
-        int up = y + 1;
-        int down = y - 1;
-
-        int front = z + 1;
-        int back = z - 1;
-        
-        int left = x - 1;
-        int right = x + 1;
-
-        //if (voxelTypes[GetVoxelIndex(x, y, z)].IsSolid == false)
-        //{
-        //    for (int i = 0; i < adjacents.Count; i++)
-        //    {
-        //        adjacents[i] = false;
-        //    }
-
-        //    return adjacents;
-        //}
-
-        //if (IsVoxelInChunk(x, up, z) || IsVoxelInChunk(x, down, z) || IsVoxelInChunk(x, y, front) || IsVoxelInChunk(x, y, back) || IsVoxelInChunk(left, y, z) || IsVoxelInChunk(right, y, z))
-        //{            
-        //    if (IsVoxelInChunk(x, up, z))
-        //    {
-        //        adjacents[(int)VoxelFaces.UP] = GetVoxelType(x, up, z).IsSolid ? false : true;
-        //    }
-            
-        //    if (IsVoxelInChunk(x, down, z))
-        //    {
-        //        adjacents[(int)VoxelFaces.DOWN] = GetVoxelType(x, down, z).IsSolid ? false : true;
-        //    }
-           
-        //    if (IsVoxelInChunk(x, y, back))
-        //    {
-        //        adjacents[(int)VoxelFaces.BACK] = GetVoxelType(x, y, back).IsSolid ? false : true;
-        //    }
-            
-        //    if (IsVoxelInChunk(x, y, front))
-        //    {
-        //        adjacents[(int)VoxelFaces.FRONT] = GetVoxelType(x, y, front).IsSolid ? false : true;
-        //    }
-           
-        //    if (IsVoxelInChunk(right, y, z))
-        //    {
-        //        adjacents[(int)VoxelFaces.RIGHT] = GetVoxelType(right, y, z).IsSolid ? false : true;
-        //    }
-
-        //    if (IsVoxelInChunk(x, y, left))
-        //    {
-        //        adjacents[(int)VoxelFaces.LEFT] = GetVoxelType(left, y, z).IsSolid ? false : true;
-        //    }
-        //}
-        //else
+      
         {
-            up = (int)chunkVoxelInWorldCoordinates.y + 1;
-            down = (int)chunkVoxelInWorldCoordinates.y - 1;
-
-            front = (int)chunkVoxelInWorldCoordinates.z + 1;
-            back = (int)chunkVoxelInWorldCoordinates.z - 1;
-
-            left = (int)chunkVoxelInWorldCoordinates.x - 1;
-            right = (int)chunkVoxelInWorldCoordinates.x + 1;
+            int up = (int)chunkVoxelInWorldCoordinates.y + 1;
+            int down = (int)chunkVoxelInWorldCoordinates.y - 1;
+                
+            int front = (int)chunkVoxelInWorldCoordinates.z + 1;
+            int back = (int)chunkVoxelInWorldCoordinates.z - 1;
+                
+            int left = (int)chunkVoxelInWorldCoordinates.x - 1;
+            int right = (int)chunkVoxelInWorldCoordinates.x + 1;
 
             if (world.IsWorldVoxelSolid(new Vector3(chunkVoxelInWorldCoordinates.x, up, chunkVoxelInWorldCoordinates.z)))
             {

@@ -40,7 +40,7 @@ public class World
     public Vector3 GetSpawnPosition(float playerHeight) 
     {
         return new Vector3(worldSettings.worldSizeInChunks.x * worldSettings.chunkSettings.chunkSize.x * worldSettings.chunkSettings.voxelSize.x / 2,
-                   (worldSettings.chunkSettings.chunkSize.y * worldSettings.chunkSettings.voxelSize.y / 2) + playerHeight,
+                   playerHeight,
                    worldSettings.worldSizeInChunks.z * worldSettings.chunkSettings.chunkSize.z * worldSettings.chunkSettings.voxelSize.z / 2);
     }
 
@@ -295,6 +295,7 @@ public class World
 
         var chunkGameObject = new GameObject("Chunk_" + chunk.chunkCoordinates.x + "," + chunk.chunkCoordinates.y + "," + chunk.chunkCoordinates.z);
         chunkGameObject.transform.SetParent(root);
+        chunkGameObject.transform.position = new Vector3(chunkGameObject.transform.position.x + 8, chunkGameObject.transform.position.y + WorldSizeInVoxels.y / 2, chunkGameObject.transform.position.z + 8);
         chunk.chunkObject = chunkGameObject;
 
         var meshFilter = chunkGameObject.AddComponent<MeshFilter>();

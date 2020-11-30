@@ -6,12 +6,16 @@ public class World
 {
     public WorldSettings worldSettings;
 
-    private ChunkData[,,] chunks;
-    private List<ChunkCoordinates> activeChunks = new List<ChunkCoordinates>();
+    public ChunkData[,,] chunks;
+    public List<ChunkCoordinates> activeChunks = new List<ChunkCoordinates>();
+    public List<ChunkCoordinates> chunksToCreate = new List<ChunkCoordinates>();
 
     private Vector3 spawnPosition;
     private ChunkCoordinates lastPlayerChunkCoordinates;
+    public ChunkCoordinates currentPlayerChunkCoordinates = new ChunkCoordinates(0, 0, 0);
+
     private Transform root;
+    public bool isCreatingChunks;
 
     public Vector3 WorldSizeInVoxels
     {
@@ -65,8 +69,10 @@ public class World
             for (int j = start.y; j < end.y; j++)
             {
                 for (int k = start.z; k < end.z; k++)
-                {
-                    GenerateChunkFromChunkCoordinates(i, j, k);
+                {                    
+                    chunks[i, j, k] = GenerateChunkFromChunkCoordinates(i, j, k, true);
+
+                    activeChunks.Add(new ChunkCoordinates(i, j, k));
                 }
             }
         }
@@ -102,6 +108,7 @@ public class World
     public void UpdateWorld(Transform player)
     {
         var chunkCoordinates = GetChunkCoordinatesFromWorldPosition(player.position);
+        currentPlayerChunkCoordinates = chunkCoordinates;
 
         if (lastPlayerChunkCoordinates == chunkCoordinates)
         {
@@ -140,39 +147,24 @@ public class World
                 {
                     if (IsChunkInWorld(i, j, k))
                     {
+                        activeChunks.Add(new ChunkCoordinates(i, j, k));
+
                         if (chunks[i, j, k] == null)
                         {
-                            GenerateChunkFromChunkCoordinates(i, j, k);
+                            chunksToCreate.Add(new ChunkCoordinates(i, j, k));
+                            chunks[i, j, k] = GenerateChunkFromChunkCoordinates(i, j, k, false);
                         }
                         else
                         {
                             chunks[i, j, k].IsActive = true;
-                            activeChunks.Add(new ChunkCoordinates(i, j, k));
-                        }
-                    }
-                }
-            }
-        }
-
-        for (int i = minActive.x; i < maxActive.z; i++)
-        {
-            for (int j = minActive.y; j < maxActive.y; j++)
-            {
-                for (int k = minActive.z; k < maxActive.z; k++)
-                {
-                    if (IsChunkInWorld(i, j, k))
-                    {
-                        if (chunks[i, j, k].chunkObject == null)
-                        {
-                            SetupChunkGameObjects(i, j, k);
-                        }                       
+                        }                        
                     }
                 }
             }
         }
 
         lastPlayerChunkCoordinates = chunkCoordinates;
-    }
+    }    
 
     public bool IsChunkInWorld(int x, int y, int z)
     {
@@ -202,7 +194,24 @@ public class World
             if (chunks[chunkPosition.x, chunkPosition.y, chunkPosition.z] != null)
             {
                 var voxelPosition = GetChunkVoxelFromWorldCoordinates(voxelWorldPosition);
-                return chunks[chunkPosition.x, chunkPosition.y, chunkPosition.z].GetVoxelType((int)voxelPosition.x, (int)voxelPosition.y, (int)voxelPosition.z).IsSolid;
+                var chunk = chunks[chunkPosition.x, chunkPosition.y, chunkPosition.z];
+                if (chunk != null && chunk.isInitialized)
+                {
+                    var type = chunk.GetVoxelType((int)voxelPosition.x, (int)voxelPosition.y, (int)voxelPosition.z);
+
+                    if (type != null)
+                    {
+                        return type.IsSolid;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
 
@@ -231,6 +240,8 @@ public class World
         int terrainHeight = Mathf.FloorToInt(worldSettings.biomeAttributes.terrainHeight * randomHeightPercentage) + worldSettings.biomeAttributes.solidGroundHeight;
 
         VoxelType voxelType;
+        //voxelType = worldSettings.chunkSettings.voxelTypeCollection.GetVoxelType("Stone");
+        //return voxelType;
 
         if (positionInVoxels.y < terrainHeight)
         {
@@ -278,20 +289,35 @@ public class World
         return voxelType;
     }
 
-    private void GenerateChunkFromChunkCoordinates(int x, int y, int z)
+    private ChunkData GenerateChunkFromChunkCoordinates(int x, int y, int z, bool initializeOnLoad)
     {
         ChunkCoordinates coordinates = new ChunkCoordinates(x, y, z);
 
-        ChunkData chunk = new ChunkData(this, coordinates);
-        
-        chunks[x, y, z] = chunk;
+        ChunkData chunk = new ChunkData(this, coordinates, initializeOnLoad);
 
-        activeChunks.Add(coordinates);
+        return chunk;
     }
 
-    private void SetupChunkGameObjects(int x, int y, int z) 
+    public void InitializeChunk(int x, int y, int z) 
+    {
+        if (IsChunkInWorld(x, y, z))
+        {
+            if (chunks[x, y, z].isInitialized == false)
+            {
+                chunks[x, y, z].Init();
+            }
+        }
+    }
+
+    public void SetupChunkGameObjects(int x, int y, int z) 
     {
         var chunk = chunks[x, y, z];
+        
+        if (chunk.isInitialized == false)
+        {
+            Debug.Log("Trying to setup mesh for uninitialized chunk");
+            return;
+        }
 
         var chunkGameObject = new GameObject("Chunk_" + chunk.chunkCoordinates.x + "," + chunk.chunkCoordinates.y + "," + chunk.chunkCoordinates.z);
         chunkGameObject.transform.SetParent(root);

@@ -21,25 +21,32 @@ public class ChunkData
     public GameObject chunkObject;
     public ChunkCoordinates chunkCoordinates;
     public World world;
+    public bool isInitialized;
 
+    private bool isActive;
     public bool IsActive 
     {
         get 
         {
-            return chunkObject.activeSelf;
+            return isActive;
         }
 
         set 
         {
-            chunkObject.SetActive(value);
+            isActive = value;
+
+            if (chunkObject != null)
+            {
+                chunkObject.SetActive(value);
+            }
         }
     }
 
     private Vector3 worldPosition;   
-    private List<Vector3> voxelPositions = new List<Vector3>();
-    private List<VoxelType> voxelTypes = new List<VoxelType>();
+    private Vector3[,,] voxelPositions;
+    private VoxelType[,,] voxelTypes;
 
-    public ChunkData(World world, ChunkCoordinates coordinates) 
+    public ChunkData(World world, ChunkCoordinates coordinates, bool initializeOnLoad) 
     {
         if (world.worldSettings.chunkSettings.chunkSize.x <= 0)
         {
@@ -65,19 +72,16 @@ public class ChunkData
         chunkCoordinates = coordinates;
         worldPosition = new Vector3(world.worldSettings.chunkSettings.chunkSize.x * coordinates.x * world.worldSettings.chunkSettings.voxelSize.x, world.worldSettings.chunkSettings.chunkSize.y * coordinates.y * world.worldSettings.chunkSettings.voxelSize.y, world.worldSettings.chunkSettings.chunkSize.z * coordinates.z * world.worldSettings.chunkSettings.voxelSize.z);
 
-        Init();
+        if (initializeOnLoad)
+        {
+            Init();
+        }
     }
 
-    private void Init() 
+    public void Init() 
     {
-        voxelPositions = new List<Vector3>();
-        voxelTypes = new List<VoxelType>();
-
-        for (int i = 0; i < (int)world.worldSettings.chunkSettings.chunkSize.x * (int)world.worldSettings.chunkSettings.chunkSize.y * (int)world.worldSettings.chunkSettings.chunkSize.z; i++)
-        {
-            voxelPositions.Add(Vector3.zero);
-            voxelTypes.Add(null);
-        }
+        voxelPositions = new Vector3[(int)world.worldSettings.chunkSettings.chunkSize.x, (int)world.worldSettings.chunkSettings.chunkSize.y, (int)world.worldSettings.chunkSettings.chunkSize.z];
+        voxelTypes = new VoxelType[(int)world.worldSettings.chunkSettings.chunkSize.x, (int)world.worldSettings.chunkSettings.chunkSize.y, (int)world.worldSettings.chunkSettings.chunkSize.z];
 
         float width = world.worldSettings.chunkSettings.chunkSize.x * world.worldSettings.chunkSettings.voxelSize.x;
         float height = world.worldSettings.chunkSettings.chunkSize.y * world.worldSettings.chunkSettings.voxelSize.y;
@@ -91,13 +95,14 @@ public class ChunkData
             {
                 for (int d = 0; d < world.worldSettings.chunkSettings.chunkSize.z; d++)
                 {
-                    int index = w + (int)world.worldSettings.chunkSettings.chunkSize.x * (h + (int)world.worldSettings.chunkSettings.chunkSize.y * d);
                     Vector3 center = new Vector3(chunkBounds.min.x + w * world.worldSettings.chunkSettings.voxelSize.x, chunkBounds.min.y + h * world.worldSettings.chunkSettings.voxelSize.y, chunkBounds.min.z + d * world.worldSettings.chunkSettings.voxelSize.z);
-                    voxelPositions[index] = center;
-                    voxelTypes[index] = world.DetermineVoxelType(GetChunkVoxelInWorldCoordinates(new Vector3(w, h, d), chunkCoordinates));
+                    voxelPositions[w, h, d] = center;
+                    voxelTypes[w, h, d] = world.DetermineVoxelType(GetChunkVoxelInWorldCoordinates(new Vector3(w, h, d), chunkCoordinates));
                 }
             }
         }
+
+        isInitialized = true;
     }
 
     public Vector3 GetChunkVoxelInWorldCoordinates(Vector3 voxelPositionInChunk, ChunkCoordinates chunkCoordinates) 
@@ -117,14 +122,16 @@ public class ChunkData
         return -1;
     }
 
-    public Vector3 GetVoxelPosition(int index) 
+    public Vector3 GetVoxelPosition(int x, int y, int z) 
     {
-        return voxelPositions[index];
+        return voxelPositions[x, y, z];
     }
 
     public VoxelType GetVoxelType(int x, int y, int z)
     {
-        return voxelTypes[GetVoxelIndex(x, y, z)];
+        return voxelTypes[Mathf.Clamp(x, 0, (int)world.worldSettings.chunkSettings.chunkSize.x - 1), 
+            Mathf.Clamp(y, 0, (int)world.worldSettings.chunkSettings.chunkSize.y - 1), 
+            Mathf.Clamp(z, 0, (int)world.worldSettings.chunkSettings.chunkSize.z - 1)];
     }
 
     public bool IsVoxelInChunk(int x, int y, int z) 
@@ -242,10 +249,10 @@ public class ChunkData
 
                     previousVerticesCount = vertices.Count;
 
-                    if (voxelTypes[GetVoxelIndex(i, j, k)].IsSolid)
+                    if (voxelTypes[i, j, k].IsSolid)
                     {
-                        VoxelData.GetVoxelVertices(ref vertices, adjacents, GetVoxelPosition(GetVoxelIndex(i, j, k)), world.worldSettings.chunkSettings.voxelSize);
-                        VoxelData.GetUVs(ref uvs, adjacents, voxelTypes[GetVoxelIndex(i, j, k)], world.worldSettings.chunkSettings.textureAtlas);                
+                        VoxelData.GetVoxelVertices(ref vertices, adjacents, GetVoxelPosition(i, j, k), world.worldSettings.chunkSettings.voxelSize);
+                        VoxelData.GetUVs(ref uvs, adjacents, voxelTypes[i, j, k], world.worldSettings.chunkSettings.textureAtlas);                
                         VoxelData.GetVoxelIndices(ref indices, adjacents, previousVerticesCount);
                     }
                 }

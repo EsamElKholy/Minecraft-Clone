@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Voxel Type Collection
   m_EditorClassIdentifier: 
   VoxelTypes:
+  - {fileID: 11400000, guid: 136d7c485bdb7894d9f22bd3a9818c6e, type: 2}
   - {fileID: 11400000, guid: 04c4064b5eb3adf4b8c127c276f3c386, type: 2}
   - {fileID: 11400000, guid: 594ee4920127aab45aa4508fbfdbcbf8, type: 2}
   - {fileID: 11400000, guid: 85024375c12b7044d82f2e2ed3d592b9, type: 2}
   - {fileID: 11400000, guid: 8dd6d50a19b10e94db949f6ff7e8f111, type: 2}
   - {fileID: 11400000, guid: 0f016c3067176b048a49cf9092d4e3b6, type: 2}
-  - {fileID: 11400000, guid: 136d7c485bdb7894d9f22bd3a9818c6e, type: 2}

@@ -134,6 +134,13 @@ public class ChunkData
             Mathf.Clamp(z, 0, (int)world.worldSettings.chunkSettings.chunkSize.z - 1)];
     }
 
+    public void SetVoxelType(int x, int y, int z, VoxelType voxelType) 
+    {
+        voxelTypes[Mathf.Clamp(x, 0, (int)world.worldSettings.chunkSettings.chunkSize.x - 1),
+                Mathf.Clamp(y, 0, (int)world.worldSettings.chunkSettings.chunkSize.y - 1),
+                Mathf.Clamp(z, 0, (int)world.worldSettings.chunkSettings.chunkSize.z - 1)] = voxelType;
+    }
+
     public bool IsVoxelInChunk(int x, int y, int z) 
     {
         if (x >= 0 && x < world.worldSettings.chunkSettings.chunkSize.x && y >= 0 && y < world.worldSettings.chunkSettings.chunkSize.y && z >= 0 && z < world.worldSettings.chunkSettings.chunkSize.z)
@@ -225,6 +232,19 @@ public class ChunkData
         }        
 
         return adjacents;
+    }
+
+    public void UpdateMesh() 
+    {
+        if (chunkObject != null)
+        {
+            var meshFilter = chunkObject.GetComponent<MeshFilter>();
+
+            if (meshFilter)
+            {
+                SetupMesh(ref meshFilter);
+            }
+        }
     }
 
     public void SetupMesh(ref MeshFilter meshFilter) 

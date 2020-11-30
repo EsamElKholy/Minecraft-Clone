@@ -9,6 +9,7 @@ public class World
     public ChunkData[,,] chunks;
     public List<ChunkCoordinates> activeChunks = new List<ChunkCoordinates>();
     public List<ChunkCoordinates> chunksToCreate = new List<ChunkCoordinates>();
+    public List<ChunkData> chunksToUpdate = new List<ChunkData>();
 
     private Vector3 spawnPosition;
     private ChunkCoordinates lastPlayerChunkCoordinates;
@@ -16,6 +17,7 @@ public class World
 
     private Transform root;
     public bool isCreatingChunks;
+    public bool isUpdatingChunks;
 
     public Vector3 WorldSizeInVoxels
     {
@@ -193,7 +195,7 @@ public class World
             var chunkPosition = GetChunkCoordinatesFromWorldPosition(voxelWorldPosition);
             if (chunks[chunkPosition.x, chunkPosition.y, chunkPosition.z] != null)
             {
-                var voxelPosition = GetChunkVoxelFromWorldCoordinates(voxelWorldPosition);
+                var voxelPosition = GetChunkVoxelPositionFromWorldCoordinates(voxelWorldPosition);
                 var chunk = chunks[chunkPosition.x, chunkPosition.y, chunkPosition.z];
                 if (chunk != null && chunk.isInitialized)
                 {
@@ -218,7 +220,7 @@ public class World
         return false;
     }
 
-    public Vector3 GetChunkVoxelFromWorldCoordinates(Vector3 worldPosition) 
+    public Vector3 GetChunkVoxelPositionFromWorldCoordinates(Vector3 worldPosition) 
     {
         int x = (int)worldPosition.x % (int)worldSettings.chunkSettings.chunkSize.x;
 
@@ -287,6 +289,86 @@ public class World
         }
 
         return voxelType;
+    }
+
+    public void EditVoxel(Vector3 voxelWorldPosition, VoxelType voxelType) 
+    {
+        if (IsVoxelInWorld(voxelWorldPosition))
+        {
+            var chunkPosition = GetChunkCoordinatesFromWorldPosition(voxelWorldPosition);
+            if (chunks[chunkPosition.x, chunkPosition.y, chunkPosition.z] != null)
+            {
+                var voxelPosition = GetChunkVoxelPositionFromWorldCoordinates(voxelWorldPosition);
+                var chunk = chunks[chunkPosition.x, chunkPosition.y, chunkPosition.z];
+                if (chunk != null && chunk.isInitialized)
+                {
+                    chunk.SetVoxelType((int)voxelPosition.x, (int)voxelPosition.y, (int)voxelPosition.z, voxelType);
+
+                    chunksToUpdate.Add(chunk);
+                    UpdateAdjacentChunks(chunkPosition);
+                }                
+            }
+        }
+    }
+
+    private void UpdateAdjacentChunks(ChunkCoordinates chunkCoordinates) 
+    {
+        int up = chunkCoordinates.y + 1;
+        int down = chunkCoordinates.y - 1;
+
+        int front = chunkCoordinates.z + 1;
+        int back = chunkCoordinates.z - 1;
+
+        int right = chunkCoordinates.x + 1;
+        int left = chunkCoordinates.x - 1;
+
+        if (IsChunkInWorld(chunkCoordinates.x, up, chunkCoordinates.z))
+        {
+            if (chunks[chunkCoordinates.x, up, chunkCoordinates.z] != null && chunks[chunkCoordinates.x, up, chunkCoordinates.z].isInitialized)
+            {
+                chunksToUpdate.Add(chunks[chunkCoordinates.x, up, chunkCoordinates.z]);
+            }            
+        }
+
+        if (IsChunkInWorld(chunkCoordinates.x, down, chunkCoordinates.z))
+        {
+            if (chunks[chunkCoordinates.x, down, chunkCoordinates.z] != null && chunks[chunkCoordinates.x, down, chunkCoordinates.z].isInitialized)
+            {
+                chunksToUpdate.Add(chunks[chunkCoordinates.x, down, chunkCoordinates.z]);
+            }
+        }
+
+        if (IsChunkInWorld(chunkCoordinates.x, chunkCoordinates.y, front))
+        {
+            if (chunks[chunkCoordinates.x, chunkCoordinates.y, front] != null && chunks[chunkCoordinates.x, chunkCoordinates.y, front].isInitialized)
+            {
+                chunksToUpdate.Add(chunks[chunkCoordinates.x, chunkCoordinates.y, front]);
+            }
+        }
+
+        if (IsChunkInWorld(chunkCoordinates.x, chunkCoordinates.y, back))
+        {
+            if (chunks[chunkCoordinates.x, chunkCoordinates.y, back] != null && chunks[chunkCoordinates.x, chunkCoordinates.y, back].isInitialized)
+            {
+                chunksToUpdate.Add(chunks[chunkCoordinates.x, chunkCoordinates.y, back]);
+            }
+        }
+
+        if (IsChunkInWorld(right, chunkCoordinates.y, chunkCoordinates.z))
+        {
+            if (chunks[right, chunkCoordinates.y, chunkCoordinates.z] != null && chunks[right, chunkCoordinates.y, chunkCoordinates.z].isInitialized)
+            {
+                chunksToUpdate.Add(chunks[right, chunkCoordinates.y, chunkCoordinates.z]);
+            }
+        }
+
+        if (IsChunkInWorld(left, chunkCoordinates.y, chunkCoordinates.z))
+        {
+            if (chunks[left, chunkCoordinates.y, chunkCoordinates.z] != null && chunks[left, chunkCoordinates.y, chunkCoordinates.z].isInitialized)
+            {
+                chunksToUpdate.Add(chunks[left, chunkCoordinates.y, chunkCoordinates.z]);
+            }
+        }
     }
 
     private ChunkData GenerateChunkFromChunkCoordinates(int x, int y, int z, bool initializeOnLoad)

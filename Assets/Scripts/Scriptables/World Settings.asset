@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   chunkSettings: {fileID: 11400000, guid: 97f55a766ba6f6d40a7e8ed817c1bcd0, type: 2}
   worldSizeInChunks: {x: 10, y: 1, z: 10}
-  maxChunkViewDistance: {x: 10, y: 1, z: 10}
+  maxChunkViewDistance: {x: 3, y: 1, z: 3}
   seed: 2
   biomeAttributes: {fileID: 11400000, guid: f71f11c6a42eefa45a786785bb43d6aa, type: 2}

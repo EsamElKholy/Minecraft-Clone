@@ -28,6 +28,13 @@ public class VoxelGenerator : MonoBehaviour
 
             StartCoroutine(CreateChunks(world, new List<ChunkCoordinates>(world.chunksToCreate)));
         }
+
+        if (world.chunksToUpdate.Count > 0 && world.isUpdatingChunks == false)
+        {
+            world.isUpdatingChunks = true;
+
+            StartCoroutine(UpdateChunks(world));
+        }
     }
 
     private IEnumerator CreateChunks(World world, List<ChunkCoordinates> chunksToCreate)
@@ -100,5 +107,18 @@ public class VoxelGenerator : MonoBehaviour
         }
 
         world.isCreatingChunks = false;
+    }
+
+    private IEnumerator UpdateChunks(World world) 
+    {
+        while (world.chunksToUpdate.Count > 0)
+        {
+            world.chunksToUpdate[0].UpdateMesh();
+            world.chunksToUpdate.RemoveAt(0);
+
+            yield return new WaitForEndOfFrame();
+        }
+
+        world.isUpdatingChunks = false;
     }
 }
